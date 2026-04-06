@@ -1,0 +1,25 @@
+# Linux
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment Variables (SENSITIVE!)
+.env
+
+# Large Documentation (Scraped data)
+x_layer_docs/
+
+# IDE
+.vscode/
+.idea/
+.gemini/
