@@ -12,9 +12,9 @@ load_dotenv()
 
 class OKXClient:
     def __init__(self):
-        self.api_key = os.getenv("OKX_API_KEY")
-        self.secret_key = os.getenv("OKX_SECRET_KEY")
-        self.passphrase = os.getenv("OKX_PASSPHRASE")
+        self.api_key = os.getenv("OKX_API_KEY", "").strip()
+        self.secret_key = os.getenv("OKX_SECRET_KEY", "").strip()
+        self.passphrase = os.getenv("OKX_PASSPHRASE", "").strip()
         self.base_url = "https://web3.okx.com"
 
     def _generate_signature(self, timestamp, method, request_path, body_str=""):

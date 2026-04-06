@@ -70,18 +70,24 @@ def get_transaction_history(address: str):
 @app.get("/market/fear-greed")
 def get_fear_and_greed():
     """Fetches latest crypto fear and greed index."""
-    cmc_key = os.getenv("X-CMC_PRO_API_KEY")
+    api_key = os.getenv("X-CMC_PRO_API_KEY", "").strip()
     url = "https://pro-api.coinmarketcap.com/v3/fear-and-greed/latest"
-    headers = {"X-CMC_PRO_API_KEY": cmc_key}
+    headers = {
+        'Accepts': 'application/json',
+        'X-CMC_PRO_API_KEY': api_key,
+    }
     response = requests.get(url, headers=headers)
     return response.json()
 
 @app.get("/market/global-stats")
 def get_global_metrics():
     """Fetches global market quotes (Total Market Cap, BTC Dominance, etc.)."""
-    cmc_key = os.getenv("X-CMC_PRO_API_KEY")
+    api_key = os.getenv("X-CMC_PRO_API_KEY", "").strip()
     url = "https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest"
-    headers = {"X-CMC_PRO_API_KEY": cmc_key}
+    headers = {
+        'Accepts': 'application/json',
+        'X-CMC_PRO_API_KEY': api_key,
+    }
     response = requests.get(url, headers=headers)
     return response.json()
 
