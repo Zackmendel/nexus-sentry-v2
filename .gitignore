@@ -1,25 +1,52 @@
-# Linux
+# OS
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
 
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
 .Python
 env/
 venv/
 .venv/
 pip-log.txt
 pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.ipynb_checkpoints
 
-# Environment Variables (SENSITIVE!)
-.env
+# Node / Frontend
+node_modules/
+.next/
+out/
+build/
+dist/
+.env*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.tsbuildinfo
+next-env.d.ts
 
-# Large Documentation (Scraped data)
+# Large Documentation / Scraped data
 x_layer_docs/
+temp_scraped/
 
 # IDE
 .vscode/
 .idea/
 .gemini/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
