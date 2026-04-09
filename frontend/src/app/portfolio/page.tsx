@@ -11,10 +11,26 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft, ExternalLink, Copy, Check, Wallet, History, Loader2, Lock } from "lucide-react";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  ExternalLink, 
+  Copy, 
+  Check, 
+  Wallet, 
+  History, 
+  Loader2, 
+  Lock,
+  Image as ImageIcon, 
+  LayoutGrid
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WalletConnect } from "@/components/wallet-connect";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatUnits } from "viem";
+import { cn } from "@/lib/utils";
 
 const API_BASE = "https://x-layer-api-349808161165.us-central1.run.app";
 
@@ -27,6 +43,7 @@ export default function PortfolioPage() {
     total: null,
     balances: [],
     history: [],
+    nfts: [],
     pnl: null
   });
 
@@ -45,22 +62,25 @@ export default function PortfolioPage() {
     async function fetchPortfolio() {
       try {
         setLoading(true);
-        const [totalRes, balancesRes, historyRes, pnlRes] = await Promise.all([
+        const [totalRes, balancesRes, historyRes, pnlRes, nftRes] = await Promise.all([
           fetch(`${API_BASE}/portfolio/${address}/total`),
           fetch(`${API_BASE}/portfolio/${address}/balances`),
           fetch(`${API_BASE}/portfolio/${address}/history`),
-          fetch(`${API_BASE}/portfolio/${address}/pnl`)
+          fetch(`${API_BASE}/portfolio/${address}/pnl`),
+          fetch(`${API_BASE}/portfolio/${address}/nfts`)
         ]);
 
         const totalData = await totalRes.json();
         const balancesData = await balancesRes.json();
         const historyData = await historyRes.json();
         const pnlData = await pnlRes.json();
+        const nftData = await nftRes.json();
 
         setData({
           total: totalData.data?.[0]?.totalValue || "0.00",
           balances: balancesData.data?.[0]?.tokenAssets || [],
           history: historyData.data?.[0]?.transactions || [],
+          nfts: nftData.data || [],
           pnl: pnlData.data || null
         });
       } catch (error) {
@@ -241,55 +261,127 @@ export default function PortfolioPage() {
             Asset Portfolio
           </h3>
           <Card className="bg-zinc-900/20 border-white/5 backdrop-blur-xl overflow-hidden grain border-t-white/10">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-white/[0.02]">
-                  <TableRow className="hover:bg-transparent border-white/5">
-                    <TableHead className="text-[10px] font-black uppercase tracking-widest py-5 px-8">Asset</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-right">Balance</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-right">Market Price</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-right px-8">Total Value</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.balances.length > 0 ? data.balances.map((token: any, i: number) => (
-                    <TableRow key={i} className="hover:bg-white/5 border-white/5 transition-colors group cursor-default">
-                      <TableCell className="py-4 px-8">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-[10px] overflow-hidden border border-white/10 group-hover:border-neon-cyan transition-colors">
-                            {token.logoUrl ? <img src={token.logoUrl} alt={token.tokenSymbol} /> : token.tokenSymbol?.slice(0, 1)}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-sm tracking-tight">{token.tokenSymbol}</span>
-                            <div className="flex items-center gap-2 group/token">
-                              <span className="text-[10px] text-zinc-500 font-mono tracking-tighter opacity-70 italic">{token.tokenAddress?.slice(0, 10)}...</span>
-                              <button 
-                                onClick={() => handleCopy(token.tokenAddress, token.tokenAddress)}
-                                className="opacity-0 group-hover/token:opacity-100 transition-opacity p-0.5 hover:bg-white/10 rounded"
-                                title="Copy Token Address"
-                              >
-                                {copiedAddress === token.tokenAddress ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3 text-zinc-600 hover:text-white" />}
-                              </button>
-                            </div>
-                          </div>
+            <div className="flex flex-col max-h-[480px] overflow-y-auto custom-scrollbar divide-y divide-white/5">
+              {data.balances.length > 0 ? data.balances.map((token: any, i: number) => {
+                const symbol = token.symbol || "UNK";
+                const decimals = Number(token.decimals || 18);
+                const rawBalance = token.rawBalance || "0";
+                
+                // Prioritize high-precision calculation from rawBalance
+                const balance = rawBalance !== "0" 
+                  ? Number(formatUnits(BigInt(rawBalance), decimals))
+                  : Number(token.balance || 0);
+                  
+                const price = Number(token.tokenPrice || 0);
+                const value = balance * price;
+                const address = token.tokenContractAddress || "";
+
+                return (
+                  <div key={i} className="grid grid-cols-1 md:grid-cols-12 items-center p-6 hover:bg-white/[0.02] transition-colors group gap-4">
+                    {/* Asset Icon & Name */}
+                    <div className="md:col-span-4 flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-[10px] overflow-hidden border border-white/10 group-hover:border-neon-cyan transition-colors">
+                        {token.logoUrl ? (
+                          <img src={token.logoUrl} alt={symbol} />
+                        ) : (
+                          symbol.slice(0, 1)
+                        )}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-base tracking-tight">{symbol}</span>
+                        <div className="flex items-center gap-2 group/token">
+                          <span className="text-[10px] text-zinc-500 font-mono tracking-tighter opacity-70 italic">
+                            {address ? `${address.slice(0, 10)}...` : "Native Asset"}
+                          </span>
+                          {address && (
+                            <button 
+                              onClick={() => handleCopy(address, address)}
+                              className="opacity-0 group-hover/token:opacity-100 transition-opacity p-0.5 hover:bg-white/10 rounded"
+                              title="Copy Token Address"
+                            >
+                              {copiedAddress === address ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3 text-zinc-600 hover:text-white" />}
+                            </button>
+                          )}
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm font-semibold">{Number(token.amount).toLocaleString(undefined, { maximumFractionDigits: 6 })}</TableCell>
-                      <TableCell className="text-right font-mono text-sm text-zinc-400">${Number(token.price || 0).toLocaleString()}</TableCell>
-                      <TableCell className="text-right px-8">
-                        <span className="font-bold text-white text-base group-hover:text-neon-cyan transition-colors">
-                          ${Number(token.value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+
+                    {/* Balance */}
+                    <div className="md:col-span-3 flex flex-col gap-1">
+                      <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Balance</span>
+                      <span className="text-sm font-bold font-mono">
+                        {balance.toLocaleString(undefined, { maximumFractionDigits: 6 })}
+                      </span>
+                    </div>
+
+                    {/* Market Price */}
+                    <div className="md:col-span-2 flex flex-col gap-1">
+                      <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Market Price</span>
+                      <span className="text-sm font-mono text-zinc-400">
+                        ${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+                      </span>
+                    </div>
+
+                    {/* Total Value */}
+                    <div className="md:col-span-3 flex items-center justify-end gap-6 text-right">
+                      <div className="flex flex-col items-end">
+                        <span className="text-lg font-black font-mono tracking-tight text-white group-hover:text-neon-cyan transition-colors neon-glow-text">
+                          ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
-                      </TableCell>
-                    </TableRow>
-                  )) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-24 text-zinc-500 italic">No assets detected on X Layer</TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                        <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-tighter">Total Position</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }) : (
+                <div className="p-24 flex items-center justify-center text-zinc-500 italic text-sm">
+                  No assets detected on X Layer
+                </div>
+              )}
             </div>
+          </Card>
+        </section>
+
+        {/* NFT Gallery */}
+        <section className="flex flex-col gap-4">
+          <h3 className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-2 text-zinc-500">
+            <div className="h-1 w-3 rounded-full bg-orange-500" />
+            Digital Collectibles
+          </h3>
+          <Card className="bg-zinc-900/20 border-white/5 backdrop-blur-xl p-8 grain">
+             {data.nfts.length > 0 ? (
+               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                 {data.nfts.map((nft: any, i: number) => (
+                   <motion.div 
+                     key={i}
+                     whileHover={{ y: -5 }}
+                     className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden group"
+                   >
+                     <div className="aspect-square relative overflow-hidden">
+                       <img 
+                         src={nft.imageUrl || "/api/placeholder/400/400"} 
+                         alt={nft.nftName}
+                         className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                        />
+                     </div>
+                     <div className="p-3">
+                        <span className="text-[10px] text-zinc-500 font-bold uppercase truncate block">{nft.collectionName}</span>
+                        <span className="text-sm font-bold truncate block">{nft.nftName}</span>
+                     </div>
+                   </motion.div>
+                 ))}
+               </div>
+             ) : (
+               <div className="flex flex-col items-center justify-center py-20 gap-4 text-zinc-500">
+                  <div className="p-4 rounded-full bg-white/5 border border-white/10">
+                    <ImageIcon className="h-8 w-8 opacity-20" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-bold text-sm uppercase tracking-widest">No NFTs Found</p>
+                    <p className="text-xs opacity-60">Scanning X Layer mainnet for collectibles...</p>
+                  </div>
+               </div>
+             )}
           </Card>
         </section>
 
@@ -300,7 +392,7 @@ export default function PortfolioPage() {
             Operational History
           </h3>
           <Card className="bg-zinc-900/20 border-white/5 backdrop-blur-xl overflow-hidden grain border-t-white/10">
-            <div className="flex flex-col">
+            <div className="flex flex-col max-h-[600px] overflow-y-auto custom-scrollbar">
               <div className="divide-y divide-white/5">
                 {data.history.length > 0 ? data.history.map((tx: any, i: number) => {
                    const isSend = tx.from?.[0]?.address?.toLowerCase() === address?.toLowerCase();
@@ -319,8 +411,13 @@ export default function PortfolioPage() {
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-black tracking-tight">{side === 'Send' ? 'Transfer Sent' : 'Payment Received'}</span>
-                              <span className={`${tx.txStatus === 'success' ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'} text-[8px] font-black uppercase px-2 py-0.5 rounded border border-current/20`}>
-                                {tx.txStatus}
+                              <span className={cn(
+                                "text-[8px] font-black uppercase px-2 py-0.5 rounded border transition-colors",
+                                tx.txStatus === 'success' 
+                                  ? 'text-green-500 bg-green-500/10 border-green-500/20' 
+                                  : 'text-red-500 bg-red-500/10 border-red-500/20'
+                              )}>
+                                {tx.txStatus || 'Failed'}
                               </span>
                             </div>
                             <div className="flex items-center gap-2 group/tx">
@@ -353,8 +450,10 @@ export default function PortfolioPage() {
                              <span className="text-xs font-mono text-zinc-400">{tx.txFee || "0.00"} OKB</span>
                            </div>
                            <div className="flex flex-col">
-                             <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Nonce</span>
-                             <span className="text-xs font-mono text-zinc-400">#{tx.nonce || "0"}</span>
+                             <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Method</span>
+                             <span className="text-[10px] font-bold text-white bg-white/5 px-2 py-0.5 rounded w-fit uppercase tracking-tighter">
+                               {tx.methodId === '0x' ? 'Transfer' : (tx.methodId || 'Contract')}
+                             </span>
                            </div>
                         </div>
 
@@ -370,7 +469,7 @@ export default function PortfolioPage() {
                             <a 
                               href={`https://www.okx.com/explorer/xlayer/tx/${tx.txHash}`} 
                               target="_blank" 
-                              className="p-2 rounded-lg bg-white/5 border border-white/5 text-zinc-500 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all opacity-0 group-hover:opacity-100"
+                              className="p-2 rounded-lg bg-white/5 border border-white/10 text-zinc-500 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100"
                             >
                               <ExternalLink className="h-4 w-4" />
                             </a>
@@ -379,7 +478,8 @@ export default function PortfolioPage() {
                      </div>
                    );
                 }) : (
-                  <div className="p-24 flex items-center justify-center text-zinc-500 italic text-sm">
+                  <div className="p-24 flex items-center justify-center text-zinc-500 italic text-sm flex-col gap-4">
+                    <History className="h-8 w-8 opacity-20" />
                     No transactions found for this address.
                   </div>
                 )}

@@ -103,6 +103,10 @@
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   }
 
+  .neon-glow-text {
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+  }
+
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
