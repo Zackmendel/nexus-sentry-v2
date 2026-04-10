@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { useWalletStore } from "@/store/useWalletStore";
 
-const API_BASE = "https://x-layer-api-349808161165.us-central1.run.app";
+import { API_BASE } from "@/lib/constants";
 
 export default function Home() {
   const [stats, setStats] = useState<any>(null);

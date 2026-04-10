@@ -4,19 +4,30 @@ from okx_utils import OKXClient
 from metadata_sync import MetadataSync
 import requests
 import os
+from agent_utils import chat_with_sentry
+from pydantic import BaseModel
+from typing import List, Optional
 
 app = FastAPI(title="X Layer Portfolio API", version="1.0.0")
 
-# Enable CORS for frontend integration
+# --- PRODUCTION CORS SETUP ---
+# In production, you'd want to restrict this to your actual frontend domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Adjust this for production (e.g., your specific GCP frontend domain)
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"], 
+    allow_credentials=False, # Required for allow_origins=["*"]
+    allow_methods=["POST", "GET", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
 )
 
 okx = OKXClient()
+
+# --- FATAL STARTUP CHECK ---
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_KEY:
+    print("❌ FATAL: GEMINI_API_KEY is empty! AI functions will fail.")
+else:
+    print("✅ GEMINI_API_KEY detected.")
 
 @app.get("/")
 def read_root():
@@ -71,7 +82,7 @@ def get_transaction_history(address: str):
 @app.get("/market/fear-greed")
 def get_fear_and_greed():
     """Fetches latest crypto fear and greed index."""
-    api_key = os.getenv("X-CMC_PRO_API_KEY", "").strip()
+    api_key = os.getenv("X_CMC_PRO_API_KEY", os.getenv("X-CMC_PRO_API_KEY", "")).strip()
     url = "https://pro-api.coinmarketcap.com/v3/fear-and-greed/latest"
     headers = {
         'Accepts': 'application/json',
@@ -83,7 +94,7 @@ def get_fear_and_greed():
 @app.get("/market/global-stats")
 def get_global_metrics():
     """Fetches global market quotes (Total Market Cap, BTC Dominance, etc.)."""
-    api_key = os.getenv("X-CMC_PRO_API_KEY", "").strip()
+    api_key = os.getenv("X_CMC_PRO_API_KEY", os.getenv("X-CMC_PRO_API_KEY", "")).strip()
     url = "https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest"
     headers = {
         'Accepts': 'application/json',
@@ -295,6 +306,37 @@ def get_defi_tvl_chart(product_id: str):
     params = {"investmentId": product_id}
     data = okx.request("GET", "/api/v6/defi/product/tvl/chart", params=params)
     return data
+
+# --- Category I: AI Agent (Nexus-Sentry) ---
+
+class ChatRequest(BaseModel):
+    message: str
+    wallet_address: str
+    chain_id: int = 196
+    history: Optional[List[dict]] = []
+
+@app.post("/chat")
+def chat_endpoint(request: ChatRequest):
+    """Chat with Nexus-Sentry AI Co-Pilot."""
+    try:
+        # Gemini often takes a few seconds, adding print for server-side visibility
+        print(f"[Chat] Request from {request.wallet_address}")
+        
+        if not os.getenv("GEMINI_API_KEY"):
+            raise ValueError("GEMINI_API_KEY is not set in the environment")
+
+        result = chat_with_sentry(
+            message=request.message,
+            wallet_address=request.wallet_address,
+            chain_id=request.chain_id,
+            chat_history=request.history
+        )
+        return result
+    except Exception as e:
+        print(f"AI ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Sentry Intelligence Service Error: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

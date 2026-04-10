@@ -1,6 +1,5 @@
 "use client";
-
-import { Home, PieChart, Repeat, Compass, ExternalLink, Code2, MessageCircle } from "lucide-react";
+import { Home, PieChart, Repeat, Compass, ExternalLink, Code2, MessageCircle, MoreVertical } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Sidebar,
@@ -17,6 +16,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const items = [
   {
@@ -41,6 +41,8 @@ const items = [
   },
 ];
 
+import { API_BASE } from "@/lib/constants";
+
 export function AppSidebar() {
   const pathname = usePathname();
   const [isApiHealthy, setIsApiHealthy] = useState(true);
@@ -48,78 +50,112 @@ export function AppSidebar() {
   useEffect(() => {
     async function checkHealth() {
       try {
-        const res = await fetch("https://x-layer-api-349808161165.us-central1.run.app/");
+        const res = await fetch(`${API_BASE}/`);
         setIsApiHealthy(res.ok);
       } catch (error) {
         setIsApiHealthy(false);
       }
     }
     checkHealth();
-    const interval = setInterval(checkHealth, 30000); // Check every 30s
+    const interval = setInterval(checkHealth, 30000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-white/10 bg-black/50 backdrop-blur-xl">
-      <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2 px-2 overflow-hidden">
-          <div className="h-8 w-8 shrink-0 rounded-lg bg-neon-cyan flex items-center justify-center font-bold text-black neon-glow">
-            X
+    <Sidebar collapsible="icon" className="border-r border-white/5 bg-black">
+      <SidebarHeader className="p-6">
+        <div className="flex items-center gap-3 px-2 overflow-hidden group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
+          <div className="relative">
+            <div className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-okx-cyan to-okx-purple flex items-center justify-center font-black text-black shadow-[0_0_20px_rgba(0,255,204,0.3)]">
+              X
+            </div>
+            <div className="absolute -inset-1 blur-lg bg-okx-cyan/20 animate-pulse" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-glow group-data-[collapsible=icon]:hidden">X Layer</span>
+          <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+            <span className="text-sm font-black tracking-tight text-white uppercase italic">Nexus Sentry</span>
+            <span className="text-[10px] text-zinc-500 font-bold tracking-widest -mt-1">X LAYER HUB</span>
+          </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      
+      <SidebarContent className="px-3">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-zinc-500 uppercase text-[10px] font-bold tracking-widest px-4 py-2 group-data-[collapsible=icon]:hidden">
-            Navigation
-          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    tooltip={item.title}
-                    render={
-                      <Link
-                        href={item.url}
-                        className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
-                          pathname === item.url
-                            ? "bg-white/10 text-white text-glow"
-                            : "text-zinc-400 hover:text-white hover:bg-white/5"
-                        )}
-                      >
-                        <item.icon className={cn("h-5 w-5 shrink-0", pathname === item.url && "text-neon-cyan")} />
-                        <span className="font-medium group-data-[collapsible=icon]:hidden">{item.title}</span>
-                      </Link>
-                    }
-                  />
-                </SidebarMenuItem>
-              ))}
+            <SidebarMenu className="gap-1">
+              {items.map((item) => {
+                const isActive = pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      tooltip={item.title}
+                      className={cn(
+                        "relative h-11 w-full flex items-center gap-3 px-4 rounded-xl transition-all duration-300",
+                        isActive ? "text-white" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                      )}
+                      render={
+                        <Link href={item.url}>
+                          {isActive && (
+                            <motion.div
+                              layoutId="active-pill"
+                              className="absolute left-0 w-1 h-6 bg-okx-cyan rounded-full shadow-[0_0_10px_rgba(0,255,204,0.5)]"
+                              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            />
+                          )}
+                          <item.icon className={cn(
+                            "h-[18px] w-[18px] shrink-0 transition-transform duration-300",
+                            isActive ? "text-okx-cyan" : "group-hover:scale-110"
+                          )} />
+                          <span className="text-xs font-bold tracking-tight group-data-[collapsible=icon]:hidden uppercase">
+                            {item.title}
+                          </span>
+                          {isActive && (
+                            <motion.div 
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className="ml-auto group-data-[collapsible=icon]:hidden"
+                            >
+                              <div className="h-1 w-1 rounded-full bg-okx-cyan glow-cyan" />
+                            </motion.div>
+                          )}
+                        </Link>
+                      }
+                    />
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-white/5 overflow-hidden">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit">
-            <div className={cn(
-              "h-2 w-2 rounded-full animate-pulse",
-              isApiHealthy ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
-            )} />
-            <span className="text-[10px] font-semibold text-zinc-400 group-data-[collapsible=icon]:hidden">X Layer Mainnet</span>
+
+      <SidebarFooter className="p-6 border-t border-white/5">
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
+            <div className="relative">
+              <div className={cn(
+                "h-2 w-2 rounded-full",
+                isApiHealthy ? "bg-green-500" : "bg-red-500"
+              )} />
+              {isApiHealthy && <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-20" />}
+            </div>
+            <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">Mainnet</span>
+              <span className="text-[9px] text-zinc-500 font-bold uppercase truncate">Nexus Node Active</span>
+            </div>
           </div>
-          <div className="flex items-center gap-3 px-2 group-data-[collapsible=icon]:hidden">
-            <Link href="#" className="text-zinc-500 hover:text-white transition-colors">
-              <MessageCircle className="h-4 w-4" />
-            </Link>
-            <Link href="#" className="text-zinc-500 hover:text-white transition-colors">
-              <Code2 className="h-4 w-4" />
-            </Link>
-            <Link href="#" className="text-zinc-500 hover:text-white transition-colors">
-              <ExternalLink className="h-4 w-4" />
-            </Link>
+          
+          <div className="flex items-center justify-between group-data-[collapsible=icon]:hidden">
+            <div className="flex items-center gap-2">
+              <Link href="#" className="p-2 rounded-lg bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 transition-all">
+                <MessageCircle className="h-4 w-4" />
+              </Link>
+              <Link href="#" className="p-2 rounded-lg bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 transition-all">
+                <Code2 className="h-4 w-4" />
+              </Link>
+            </div>
+            <button className="p-2 text-zinc-500 hover:text-white transition-colors">
+              <MoreVertical className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </SidebarFooter>

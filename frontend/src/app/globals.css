@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -35,16 +36,17 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   
-  /* OKX Custom Colors */
+  /* OKX Obsidian Neon Colors */
   --color-neon-cyan: oklch(0.85 0.15 200);
   --color-neon-purple: oklch(0.7 0.25 300);
-  --color-okx-neon: #00ffcc;
+  --color-okx-cyan: #00ffcc;
+  --color-okx-purple: #a855f7;
 }
 
 :root {
   --background: #000000;
   --foreground: #ffffff;
-  --card: rgba(15, 15, 15, 0.7);
+  --card: rgba(255, 255, 255, 0.03);
   --card-foreground: #ffffff;
   --popover: #0a0a0a;
   --popover-foreground: #ffffff;
@@ -52,23 +54,23 @@
   --primary-foreground: #000000;
   --secondary: #1f2937;
   --secondary-foreground: #ffffff;
-  --muted: #1a1a1a;
-  --muted-foreground: #a1a1aa;
-  --accent: rgba(255, 255, 255, 0.1);
+  --muted: #111111;
+  --muted-foreground: #71717a;
+  --accent: rgba(255, 255, 255, 0.05);
   --accent-foreground: #ffffff;
   --destructive: #7f1d1d;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.03);
   --ring: #00ffcc;
   --radius: 0.75rem;
   
-  --sidebar: rgba(10, 10, 10, 0.8);
-  --sidebar-foreground: #ffffff;
+  --sidebar: #000000;
+  --sidebar-foreground: #a1a1aa;
   --sidebar-primary: #ffffff;
   --sidebar-primary-foreground: #000000;
   --sidebar-accent: rgba(255, 255, 255, 0.05);
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-border: rgba(255, 255, 255, 0.05);
   --sidebar-ring: #00ffcc;
 }
 
@@ -80,68 +82,76 @@
     @apply bg-background text-foreground selection:bg-neon-cyan/30;
     font-feature-settings: "rlig" 1, "calt" 1;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(0, 255, 204, 0.05) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(0, 255, 204, 0.08) 0px, transparent 40%),
+      radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 40%);
     background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tighter;
   }
 }
 
 @layer utilities {
   .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
+    @apply backdrop-blur-xl bg-white/5 border border-white/10;
   }
   
-  .glass-card {
-    @apply bg-zinc-900/50 backdrop-blur-md border border-white/10 hover:border-white/20 transition-all duration-300;
+  .glass-dark {
+    @apply backdrop-blur-2xl bg-black/40 border border-white/5;
+  }
+  
+  .neon-glow-cyan {
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
   }
 
-  .neon-glow {
-    box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+  .neon-glow-purple {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
   }
 
   .text-glow {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-  }
-
-  .neon-glow-text {
-    text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
   }
 
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.05) transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    width: 4px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
   }
 
-  .grain {
+  .spotlight-card {
     position: relative;
+    overflow: hidden;
   }
 
-  .grain::after {
+  .spotlight-card::before {
     content: "";
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url("https://grainy-gradients.vercel.app/noise.svg");
-    opacity: 0.05;
+    background: radial-gradient(
+      400px circle at var(--mouse-x) var(--mouse-y),
+      rgba(255, 255, 255, 0.06),
+      transparent 40%
+    );
+    opacity: 0;
+    transition: opacity 0.3s;
     pointer-events: none;
-    z-index: 10;
+  }
+
+  .spotlight-card:hover::before {
+    opacity: 1;
   }
 }

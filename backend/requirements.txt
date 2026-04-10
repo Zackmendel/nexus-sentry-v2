@@ -3,3 +3,4 @@ python-dotenv
 fastapi
 uvicorn
 google-cloud-storage
+google-generativeai

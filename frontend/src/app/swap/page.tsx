@@ -20,9 +20,9 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { formatUnits } from "viem";
 import { cn } from "@/lib/utils";
+import { useChatStore } from "@/store/useChatStore";
 
-const API_BASE = "https://x-layer-api-349808161165.us-central1.run.app";
-const CDN_TOKENS = "https://storage.googleapis.com/x-layer-metadata-349808161165/tokens_196.json";
+import { API_BASE, CDN_TOKENS } from "@/lib/constants";
 
 interface Token {
   s: string; // symbol
@@ -74,6 +74,34 @@ export default function SwapPage() {
     fetchTokens();
   }, []);
 
+  // Listen for Sentry Proposals
+  useEffect(() => {
+    const pending = localStorage.getItem('pending_swap');
+    if (pending && tokens.length > 2) {
+      try {
+        const data = JSON.parse(pending);
+        const from = tokens.find(t => t.s === data.from || t.a === data.from);
+        const to = tokens.find(t => t.s === data.to || t.a === data.to);
+        
+        if (from) setFromToken(from);
+        if (to) setToToken(to);
+        if (data.amount) setAmount(data.amount.toString());
+        
+        // Clear after consuming
+        localStorage.removeItem('pending_swap');
+        
+        // Auto-fetch quote if all data is present
+        if (from && to && data.amount) {
+           setTimeout(getQuote, 500);
+        }
+      } catch (e) {
+        console.error("Failed to parse pending swap", e);
+      }
+    }
+  }, [tokens]);
+
+  const { addMessage, setIsOpen } = useChatStore();
+
   const getQuote = async () => {
     if (!amount || isNaN(Number(amount))) {
       setQuote(null);
@@ -97,7 +125,51 @@ export default function SwapPage() {
         setError(data.msg || "Price fetch failed. Try a larger amount.");
         setQuote(null);
       } else {
-        setQuote(data.data?.[0] || null);
+        const quoteData = data.data?.[0] || null;
+        setQuote(quoteData);
+
+        // Check for High Price Impact
+        if (quoteData && Math.abs(Number(quoteData.priceImpactPercent || 0)) > 3) {
+          const impactValue = Math.abs(Number(quoteData.priceImpactPercent));
+          const sendAmount = Number(amount);
+          const marketPrice = (Number(quoteData.toTokenAmount) / Number(quoteData.fromTokenAmount)) * (Math.pow(10, Number(fromToken.d)) / Math.pow(10, Number(toToken.d)));
+          const totalValueUsd = sendAmount * (fromToken.s === 'OKB' ? 45 : (fromToken.s === 'ETH' ? 2500 : 1)); // Rough estimates for context
+          const slippageTax = (totalValueUsd * impactValue) / 100;
+
+          addMessage({
+            role: 'model',
+            parts: [{ 
+              text: `### ⚠️ HIGH PRICE IMPACT DETECTED
+With a trade size of **${sendAmount.toLocaleString()} ${fromToken.s}** and a price impact of **${impactValue.toFixed(2)}%**, you are looking at a "slippage tax" of roughly **$${slippageTax.toLocaleString(undefined, {maximumFractionDigits: 0})}**. On a network like X Layer where liquidity is still scaling, that is a significant hit.
+
+Given your request, I've analyzed several strategies to minimize this inefficiency:
+
+#### 1. The "CEX Loop" (Recommended)
+Since ${fromToken.s === 'OKB' ? 'OKB is the native token of OKX' : 'high liquidity is central'}, the deepest liquidity remains on the OKX CEX.
+*   **The Logic:** An off-chain trade on the OKX spot order book would have near-zero impact (<0.05%).
+*   **The Workflow:** Deposit your ${fromToken.s} back to your OKX account, perform the swap in the spot market, and withdraw ${toToken.s} back to X Layer.
+*   **Benefit:** You could save nearly **$${(slippageTax * 0.9).toLocaleString(undefined, {maximumFractionDigits: 0})}** compared to this on-chain swap.
+
+#### 2. TWAP & Staggered Execution
+Instead of one massive block, execute smaller "chunks" over time.
+*   **The Logic:** Swapping 10 lots of **${(sendAmount / 10).toFixed(2)} ${fromToken.s}** every 5–10 minutes allows the liquidity pools to "breathe" and arbitrageurs to rebalance the price.
+*   **Agentic Support:** I can help you monitor these intervals if you choose this manual step-path.
+
+#### 3. Limit Orders
+Instead of a Market Swap, place a Limit Order on an aggregator like **KyberSwap** or **OKX DEX**. By setting a target price, you avoid the "market-taker" impact entirely, though you must wait for the market to move into your order.
+
+| Platform | Strategy | Best For |
+| :--- | :--- | :--- |
+| **OKX CEX** | Bridge & Spot Swap | Maximum cost efficiency ($$$ savings) |
+| **OKX DEX** | Smart Routing | Fastest on-chain execution |
+| **Orbs Network** | TWAP / AI Agents | Automated, staggered execution |
+| **DefiLlama** | Meta-Aggregation | Comparing impact across all DEXs |
+
+**System Recommendation:** Given the current liquidity depth on X Layer, a trade of this size is considered a "whale move." I'd strongly suggests the **CEX Loop** or a **TWAP strategy** to protect your capital. Which strategy would you like to explore in detail?` 
+            }]
+          });
+          setIsOpen(true);
+        }
       }
     } catch (e) {
       console.error("Failed to fetch quote", e);
@@ -273,7 +345,7 @@ export default function SwapPage() {
                 <span className="flex items-center gap-1.5"><TrendingDown className="h-3 w-3" /> Price Impact</span>
                 <span className={cn(
                   "font-mono font-bold",
-                  Math.abs(Number(quote.priceImpactPercent || 0)) > 2 ? "text-red-500" : "text-green-500"
+                  Math.abs(Number(quote.priceImpactPercent || 0)) > 3 ? "text-red-500 animate-pulse" : "text-green-500"
                 )}>
                   {Number(quote.priceImpactPercent || 0).toFixed(2)}%
                 </span>
@@ -327,7 +399,11 @@ export default function SwapPage() {
             onClick={quote ? handleSwap : getQuote}
             className={cn(
                "w-full mt-6 py-6 rounded-2xl font-black text-lg transition-all active:scale-[0.98] neon-glow group",
-               quote ? "bg-neon-cyan text-black hover:bg-neon-cyan/90" : "bg-white text-black hover:bg-zinc-200"
+               quote 
+                 ? (Math.abs(Number(quote.priceImpactPercent || 0)) > 3
+                    ? "bg-red-500 text-white hover:bg-red-600 shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                    : "bg-neon-cyan text-black hover:bg-neon-cyan/90")
+                 : "bg-white text-black hover:bg-zinc-200"
             )}
           >
             {loading || simulating ? (
@@ -336,8 +412,8 @@ export default function SwapPage() {
               !amount ? "Enter an amount" : (
                 quote ? (
                   <span className="flex items-center gap-2">
-                    <Zap className="h-5 w-5 fill-current" />
-                    Confirm Swap
+                    <Zap className={cn("h-5 w-5 fill-current", Math.abs(Number(quote.priceImpactPercent || 0)) > 3 ? "text-white" : "")} />
+                    {Math.abs(Number(quote.priceImpactPercent || 0)) > 3 ? "Swap Anyway (Risky)" : "Confirm Swap"}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">

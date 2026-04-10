@@ -30,7 +30,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 
-const API_BASE = "https://x-layer-api-349808161165.us-central1.run.app";
+import { API_BASE } from "@/lib/constants";
 
 const WATCHLIST_TOKENS = [
   { s: "OKB", a: "0xec729b1399718442d87e0743b4af040b208eb675" },
@@ -39,12 +39,15 @@ const WATCHLIST_TOKENS = [
   { s: "USDC", a: "0x74b7f11373d40fd8429ec97010f3c0502a5c1e36" },
 ];
 
+import axios from "axios";
+
 export default function DiscoveryPage() {
   const [watchlistData, setWatchlistData] = useState<any[]>([]);
   const [defiProducts, setDefiProducts] = useState<any[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("Staking");
   const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [chartData, setChartData] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -52,88 +55,106 @@ export default function DiscoveryPage() {
     setMounted(true);
   }, []);
 
-  const performSearch = async (query: string) => {
+  const performSearch = async (query: string, isSilent: boolean = false) => {
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE}/defi/search?query=${query}&chain_id=196`, { method: 'POST' });
-      const data = await res.json();
-      setDefiProducts(data.data?.list || []);
+      if (!isSilent) setLoading(true);
+      const res = await axios.post(`${API_BASE}/defi/search?query=${query}&chain_id=196`, {}, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 10000
+      });
+      const products = res.data?.data?.list || [];
+      setDefiProducts(products);
     } catch (error) {
-      console.error("Search failed", error);
+      console.error("[Discovery] Search failed", error);
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
     async function init() {
-      try {
-        setLoading(true);
-        // 1. Fetch Watchlist Prices
-        const pricePromises = WATCHLIST_TOKENS.map(t => 
-          fetch(`${API_BASE}/market/price?chain_index=196&token_address=${t.a}`, { method: 'POST' })
-            .then(res => res.json())
-        );
-        const prices = await Promise.all(pricePromises);
-        setWatchlistData(prices.map((p, i) => ({
-          ...WATCHLIST_TOKENS[i],
-          price: p.data?.[0]?.price || "0.00",
-          change: (Math.random() * 4 - 2).toFixed(2)
-        })));
-        
-        // 2. Initial DeFi Search
-        await performSearch("Staking");
-      } catch (error) {
-        console.error("Discovery init failed", error);
-      } finally {
-        setLoading(false);
-      }
+      if (!mounted) return;
+      setLoading(true);
+      
+      const fetchWatchlist = async () => {
+        const results = await Promise.all(WATCHLIST_TOKENS.map(async (t) => {
+          try {
+            const res = await axios.post(`${API_BASE}/market/price?chain_index=196&token_address=${t.a}`, {}, {
+              headers: { 'Content-Type': 'application/json' },
+              timeout: 5000
+            });
+            return {
+              ...t,
+              price: res.data?.data?.[0]?.price || "0.00",
+              change: (Math.random() * 4 - 2).toFixed(2)
+            };
+          } catch (e) {
+            return { ...t, price: "0.00", change: "0.00" };
+          }
+        }));
+        setWatchlistData(results);
+      };
+
+      await Promise.all([
+        fetchWatchlist(),
+        performSearch(searchQuery, true)
+      ]);
+      
+      setLoading(false);
     }
     init();
-  }, []);
+  }, [mounted]);
 
-  // Debounced search
+  // Handle subsequent search changes without triggering init logic
   useEffect(() => {
+    if (!mounted) return;
     const timer = setTimeout(() => {
-      if (searchQuery) performSearch(searchQuery);
+      if (searchQuery) performSearch(searchQuery, false);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
   const fetchProtocolDetail = async (productId: string) => {
     try {
-      const res = await fetch(`${API_BASE}/defi/product/${productId}`);
-      const data = await res.json();
+      setDetailLoading(true);
+      setSelectedProduct({ platformName: "Analyzing...", investmentId: productId });
       
-      if (data.code === "0") {
-        setSelectedProduct(data.data);
+      const res = await axios.get(`${API_BASE}/defi/product/${productId}`, { timeout: 10000 });
+      const productDetail = res.data.data;
+      
+      if (res.data.code === "0") {
+        setSelectedProduct(productDetail);
       } else {
-        // Use basic search data if detail fails, but report error
-        console.warn("Detail API returned code", data.code, data.msg);
         const basic = defiProducts.find(p => p.investmentId === productId);
         setSelectedProduct(basic || null);
       }
       
-      const [apyRes, tvlRes] = await Promise.all([
-        fetch(`${API_BASE}/defi/product/${productId}/apy`),
-        fetch(`${API_BASE}/defi/product/${productId}/tvl`)
+      const getChart = async (url: string) => {
+        try {
+          const r = await axios.get(`${API_BASE}${url}`, { timeout: 8000 });
+          return r.data;
+        } catch (e) { return null; }
+      };
+
+      const [apyData, tvlData] = await Promise.all([
+        getChart(`/defi/product/${productId}/apy`),
+        getChart(`/defi/product/${productId}/tvl`)
       ]);
       
-      const apyData = await apyRes.json();
-      const tvlData = await tvlRes.json();
-      
       setChartData({
-        apy: Array.isArray(apyData.data) ? apyData.data.map((d: any) => ({ 
+        apy: Array.isArray(apyData?.data) ? apyData.data.map((d: any) => ({ 
           name: new Date(d.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }), 
           val: Number(d.rate) 
         })) : [],
-        tvl: Array.isArray(tvlData.data?.chartVos) ? tvlData.data.chartVos.map((d: any) => ({ 
+        tvl: Array.isArray(tvlData?.data?.chartVos) ? tvlData.data.chartVos.map((d: any) => ({ 
           name: new Date(d.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }), 
           val: Number(d.tvl) 
         })) : []
       });
     } catch (error) {
       console.error("Failed to fetch protocol detail", error);
+    } finally {
+      setDetailLoading(false);
     }
   };
 
@@ -148,7 +169,7 @@ export default function DiscoveryPage() {
       {/* High-Frequency Watchlist */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {watchlistData.map((t, i) => (
-          <Card key={i} className="bg-zinc-900/40 border-white/5 backdrop-blur-xl p-5 group hover:border-white/10 transition-all grain">
+          <Card key={i} className="bg-zinc-900/40 border-white/20 backdrop-blur-xl p-5 group hover:border-white/30 transition-all grain spotlight-card rounded-2xl">
             <div className="flex justify-between items-start mb-4">
               <div className="flex flex-col">
                 <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t.s} / USD</span>
@@ -161,11 +182,11 @@ export default function DiscoveryPage() {
                 {Number(t.change) >= 0 ? "+" : ""}{t.change}%
               </div>
             </div>
-            <div className="h-12 w-full opacity-30 group-hover:opacity-100 transition-opacity min-w-0">
+            <div className="h-12 w-full opacity-30 group-hover:opacity-100 transition-opacity min-w-0 relative">
                {mounted && (
-                 <ResponsiveContainer width="100%" height={48} minWidth={0}>
+                 <ResponsiveContainer width="100%" height={48}>
                    <LineChart data={[1,5,3,8,4,9,2,6].map(v => ({v}))}>
-                      <Line type="monotone" dataKey="v" stroke={Number(t.change) >= 0 ? "#22c55e" : "#ef4444"} strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="v" stroke={Number(t.change) >= 0 ? "#22c55e" : "#ef4444"} strokeWidth={2} dot={false} isAnimationActive={false} />
                    </LineChart>
                  </ResponsiveContainer>
                )}
@@ -186,7 +207,7 @@ export default function DiscoveryPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
                 <Input 
                    placeholder="Search protocols (e.g. Staking, Aave, USDG)..." 
-                   className="bg-white/5 border-white/10 pl-10 h-10 w-80 text-xs"
+                   className="bg-zinc-900/40 border-white/20 pl-10 h-10 w-80 text-xs rounded-xl"
                    value={searchQuery}
                    onChange={(e) => setSearchQuery(e.target.value)}
                  />
@@ -210,10 +231,10 @@ export default function DiscoveryPage() {
           </div>
         </div>
 
-        <Card className="bg-zinc-900/20 border-white/5 backdrop-blur-xl overflow-hidden grain">
-          <div className="overflow-x-auto">
+        <Card className="bg-zinc-900/40 border-white/20 backdrop-blur-xl overflow-hidden grain rounded-3xl">
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto custom-scrollbar">
              <table className="w-full text-left">
-               <thead className="bg-white/[0.02] border-b border-white/5">
+               <thead className="bg-white/[0.02] border-b border-white/10 sticky top-0 backdrop-blur-md z-10">
                  <tr>
                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">Protocol</th>
                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">Asset</th>
@@ -222,7 +243,7 @@ export default function DiscoveryPage() {
                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-500 text-right">Action</th>
                  </tr>
                </thead>
-               <tbody className="divide-y divide-white/5">
+               <tbody className="divide-y divide-white/10">
                  {defiProducts.length > 0 ? defiProducts.map((p, i) => (
                    <tr key={i} className="hover:bg-white/[0.02] transition-colors group">
                      <td className="px-6 py-4">
@@ -288,7 +309,7 @@ export default function DiscoveryPage() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-xl bg-zinc-950 border-l border-white/10 shadow-2xl p-8 flex flex-col gap-8 overflow-y-auto"
+              className="relative w-full max-w-xl bg-zinc-950 border-l border-white/20 shadow-2xl p-8 flex flex-col gap-8 overflow-y-auto"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -307,11 +328,11 @@ export default function DiscoveryPage() {
 
               {/* Protocol Facts */}
               <div className="grid grid-cols-2 gap-4">
-                 <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                 <div className="p-4 rounded-2xl bg-white/5 border border-white/20">
                     <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1">Current APY</span>
                     <span className="text-2xl font-black text-green-500">{(Number(selectedProduct.rate || 0) * 100).toFixed(2)}%</span>
                  </div>
-                 <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                 <div className="p-4 rounded-2xl bg-white/5 border border-white/20">
                     <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1">Total Value Locked</span>
                     <span className="text-2xl font-black text-white">${Number(selectedProduct.tvl || 0).toLocaleString()}</span>
                  </div>
@@ -319,26 +340,28 @@ export default function DiscoveryPage() {
 
               {/* Charts */}
               <div className="flex flex-col gap-6 mt-4">
-                 <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-2">
                        <TrendingUp className="h-4 w-4 text-neon-cyan" />
                        <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">APY History</span>
                     </div>
-                    <div className="h-48 w-full bg-white/[0.02] rounded-2xl p-4 min-w-0">
-                       {mounted && (
-                         <ResponsiveContainer width="100%" height={160} minWidth={0}>
-                            <AreaChart data={chartData?.apy}>
-                               <defs>
-                                  <linearGradient id="colorApy" x1="0" y1="0" x2="0" y2="1">
-                                     <stop offset="5%" stopColor="#00ffcc" stopOpacity={0.3}/>
-                                     <stop offset="95%" stopColor="#00ffcc" stopOpacity={0}/>
-                                  </linearGradient>
-                               </defs>
-                               <XAxis dataKey="name" hide />
-                               <Tooltip contentStyle={{ background: '#09090b', border: '1px solid rgba(255,255,255,0.1)' }} />
-                               <Area type="monotone" dataKey="val" stroke="#00ffcc" fillOpacity={1} fill="url(#colorApy)" strokeWidth={3} />
-                            </AreaChart>
-                         </ResponsiveContainer>
+                    <div className="h-48 w-full bg-white/[0.02] rounded-2xl p-4 min-w-0 relative overflow-hidden border border-white/10">
+                       {mounted && chartData?.apy?.length > 0 && (
+                         <div style={{ width: '100%', height: '100%' }}>
+                            <ResponsiveContainer>
+                               <AreaChart data={chartData?.apy}>
+                                  <defs>
+                                     <linearGradient id="colorApy" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#00ffcc" stopOpacity={0.3}/>
+                                        <stop offset="95%" stopColor="#00ffcc" stopOpacity={0}/>
+                                     </linearGradient>
+                                  </defs>
+                                  <XAxis dataKey="name" hide />
+                                  <Tooltip contentStyle={{ background: '#09090b', border: '1px solid rgba(255,255,255,0.2)' }} />
+                                  <Area type="monotone" dataKey="val" stroke="#00ffcc" fillOpacity={1} fill="url(#colorApy)" strokeWidth={3} isAnimationActive={false} />
+                               </AreaChart>
+                            </ResponsiveContainer>
+                         </div>
                        )}
                     </div>
                  </div>
@@ -348,21 +371,23 @@ export default function DiscoveryPage() {
                        <ShieldCheck className="h-4 w-4 text-purple-400" />
                        <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">TVL Expansion</span>
                     </div>
-                    <div className="h-48 w-full bg-white/[0.02] rounded-2xl p-4 min-w-0">
-                       {mounted && (
-                         <ResponsiveContainer width="100%" height={160} minWidth={0}>
-                            <AreaChart data={chartData?.tvl}>
-                               <defs>
-                                  <linearGradient id="colorTvl" x1="0" y1="0" x2="0" y2="1">
-                                     <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
-                                     <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
-                                  </linearGradient>
-                               </defs>
-                               <XAxis dataKey="name" hide />
-                               <Tooltip contentStyle={{ background: '#09090b', border: '1px solid rgba(255,255,255,0.1)' }} />
-                               <Area type="monotone" dataKey="val" stroke="#a855f7" fillOpacity={1} fill="url(#colorTvl)" strokeWidth={3} />
-                            </AreaChart>
-                         </ResponsiveContainer>
+                    <div className="h-48 w-full bg-white/[0.02] rounded-2xl p-4 min-w-0 relative overflow-hidden border border-white/10">
+                       {mounted && chartData?.tvl?.length > 0 && (
+                         <div style={{ width: '100%', height: '100%' }}>
+                            <ResponsiveContainer>
+                               <AreaChart data={chartData?.tvl}>
+                                  <defs>
+                                     <linearGradient id="colorTvl" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                                        <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                                     </linearGradient>
+                                  </defs>
+                                  <XAxis dataKey="name" hide />
+                                  <Tooltip contentStyle={{ background: '#09090b', border: '1px solid rgba(255,255,255,0.2)' }} />
+                                  <Area type="monotone" dataKey="val" stroke="#a855f7" fillOpacity={1} fill="url(#colorTvl)" strokeWidth={3} isAnimationActive={false} />
+                               </AreaChart>
+                            </ResponsiveContainer>
+                         </div>
                        )}
                     </div>
                  </div>
@@ -371,7 +396,7 @@ export default function DiscoveryPage() {
               {/* Protocol Links */}
               <div className="mt-auto pt-8 flex gap-4">
                  <Button className="flex-1 bg-white text-black font-bold h-12 rounded-xl">Invest in {selectedProduct.platformName}</Button>
-                 <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl border-white/10 group">
+                 <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl border-white/20 group">
                     <Globe className="h-5 w-5 group-hover:text-neon-cyan transition-colors" />
                  </Button>
               </div>
