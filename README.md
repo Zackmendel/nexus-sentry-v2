@@ -1,99 +1,100 @@
-# Nexus-Sentry V2: Execution Intelligence & Protection Layer 🛡️
+# Nexus-Sentry V2: The Execution Intelligence Layer 🛡️
+### *The Reasoning Layer for Agentic DeFi on X Layer*
 
-Nexus-Sentry V2 is an institutional-grade **Execution Intelligence Layer** designed specifically for the **X Layer (Mainnet 196)**. It moves beyond passive monitoring to provide active protection against liquidity inefficiencies, slippage tax, and sub-optimal trade paths.
-
-![Nexus-Sentry Architecture](https://img.shields.io/badge/Architecture-Hybrid_Serverless-blue)
-![Tech Stack](https://img.shields.io/badge/Stack-Next.js_|_FastAPI_|_Gemini-green)
-![Chain](https://img.shields.io/badge/Network-X_Layer-00ffcc)
-
----
-
-## 🏗️ System Architecture
-
-Nexus-Sentry is built with a high-performance hybrid architecture ensuring low latency and maximum reliability.
-
-### 1. Frontend (The Command Center)
-- **Framework**: Next.js 16 (App Router) with TypeScript.
-- **State Management**: Zustand for global wallet and chat states.
-- **Styling**: Tailwind CSS v4 + Framer Motion for premium "Obsidian Neon" aesthetics.
-- **Charts**: Recharts with hydration-safety for real-time performance telemetry.
-
-### 2. Backend (The Engine Room)
-- **API**: FastAPI (Python 3.11) optimized for high-concurrency.
-- **AI Agent**: **Google Gemini 3 Flash** integrated with **Function Calling** (Tool Use). The agent can autonomously query onchain data, analyze market metrics, and research yield.
-- **Services**:
-  - `OKX Onchain OS`: Primary data source for balances, swaps, and DeFi.
-  - `CoinMarketCap`: Global market intelligence (Fear & Greed, BTC Dominance).
-  - `MetadataSync`: Background engine that cleans and caches large datasets.
-
-### 3. Data & Infrastructure
-- **CDN**: Google Cloud Storage (GCS) acts as a high-speed CDN for token and liquidity metadata.
-- **Compute**: Google Cloud Run (Serverless) for the Python backend.
-- **Hosting**: Vercel for the frontend edge delivery.
+![Network](https://img.shields.io/badge/Mainnet-X_Layer-00ffcc?style=for-the-badge&logo=okx)
+![Architecture](https://img.shields.io/badge/Architecture-Execution_Firewall-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Phase-Brain_Before_Muscle-orange?style=for-the-badge)
 
 ---
 
-## 🛠️ Key Functionalities
+## 🏛️ The Vision: Moving Beyond Passive Dashboards
 
-### 1. **Nexus Intelligence (AI Co-Pilot)**
-An autonomous side-panel assistant capable of:
-- Analyzing your wallet's PnL and risk exposure.
-- Finding the best yield opportunities based on natural language queries ("Where can I earn the highest stETH yield?").
-- Providing real-time market analysis and sentiment data.
+In the current DeFi landscape, users suffer from **"Execution Anxiety."** Traditional dashboards are passive mirrors; they show you what you've already lost or where you've already failed. When it comes to the actual transaction, users are forced into **"Blind Signing"**—approving complex hex data without a reasoning agent to protect them from liquidity gaps, slippage tax, or protocol bad debt.
 
-### 2. **Institutional Portfolio**
-- **Unified Visibility**: Aggregated USD valuation across all X Layer assets.
-- **PnL Analytics**: Performance tracking including win rates and historical PnL trends.
-- **Asset Inventory**: Detailed token list with real-time price feeds and usage telemetry.
-- **Transaction History**: Decoded onchain activity log.
-
-### 3. **Smart Discovery (DeFi)**
-- **Yield Search**: Explore staking, LP, and lending protocols.
-- **Telemetry Charts**: Historical APY and TVL data visualization to identify trends before investing.
-
-### 4. **Adaptive Swap & Optimization**
-- **Liquidity Aggregation**: Integrated with OKX Aggregator for best-in-class pricing.
-- **Sentry Optimization Engine**: A pre-trade decision engine that detects high slippage and computes alternative execution paths (Split Trades, CEX Loops) side-by-side.
-- **Route Visualization**: Real-time quotes with slippage adjustment and visual route mapping.
+**Nexus-Sentry V2 changes the paradigm.** It is not a dashboard; it is **Execution Infrastructure**. It acts as the missing **Reasoning Layer** between User Intent and Onchain Action. Built natively on **X Layer (Chain 196)** and powered by **OKX Onchain OS**, Nexus-Sentry provides an **Execution Firewall** that sanitizes every intent before a single wei is moved.
 
 ---
 
-## 🎯 Use Cases
+## 🧠 Core Architecture: The "Sentry" Philosophy
 
-- **Asset Management**: Traders managing large portfolios on X Layer who need professional-grade analytics.
-- **Yield Farming**: DeFi users looking for high-accuracy product discovery and APY tracking.
-- **AI-Guided Trading**: Users who want an intelligent co-pilot to research tokens and quotes before executing.
+Nexus-Sentry follows a **"Brain Before Muscle"** approach. We have prioritized the development of high-fidelity reasoning engines over automated execution to solve the industry-wide problem of non-deterministic AI behavior.
 
----
+### 1. The Execution Firewall
+Nexus-Sentry is an active sentry. It doesn't just watch trades; it **sanitizes** them. Our engine detects price impact in real-time. If a liquidity gap is identified, the firewall triggers, blocking the sub-optimal path and forcing a strategic intelligence brief.
 
-## 🚀 Deployment Guide
+### 2. Strategic Intelligence Panel (SIP)
+Why settle for a "Market Swap" when you can optimize for "Maximum Retained Value"? Nexus-Sentry quantifies the delta between three execution paths:
+- **Direct Swap**: Standard execution (exposed to slippage tax).
+- **Split-Execution (Sequential Intent)**: Automatically staggered trades to allow liquidity rebalancing.
+- **CEX-DEX Loop**: Utilizing the deep liquidity of the OKX CEX bridge for institutional-size moves.
 
-### Backend (Cloud Run)
-1. **Infrastructure**:
-   - Enable **Cloud Run**, **Secret Manager**, and **Cloud Storage**.
-   - Create a GCS bucket named `x-layer-metadata-[PROJECT_ID]`. 
-2. **Secrets**:
-   - Store `OKX_API_KEY`, `GEMINI_API_KEY`, and `X_CMC_PRO_API_KEY` in Secret Manager.
-3. **Deploy**:
-   ```bash
-   gcloud run deploy x-layer-api --source ./backend --env-vars-file .env.yaml
-   ```
-
-### Frontend (Vercel)
-1. **Root Directory**: Set to `frontend`.
-2. **Presets**: Next.js (Automatic detection).
-3. **Environment**: Ensure no client-side secrets are needed as configuration is handled in `src/lib/constants.ts`.
-4. **Build**:
-   ```bash
-   npm run build
-   ```
+### 3. Protocol Risk Mitigation (The AAVE Guard)
+The AI Agent doesn't just look at YOUR balance; it looks at the **Protocol's Health**. By tracking real-time health factors and liquidity depth on platforms like AAVE, Nexus-Sentry proactively warns users of systemic risks—preventing them from being caught in "AAVE-style" bad debt events before the pool becomes illiquid.
 
 ---
 
-## 📜 Development Notes
-- **CORS**: The backend is configured to allow all origins (`*`) for cross-domain flexibility with Vercel and local environments.
-- **Hydration**: Components like charts are wrapped in `mounted` state guards to ensure SSR compatibility.
-- **Token Pruning**: The MetadataSync service prunes OKX data to reduce transfer sizes by >80%.
+## 🛠️ Technical Architecture
+
+The Nexus-Sentry workflow transforms a simple user intent into a high-fidelity execution strategy.
+
+```mermaid
+graph TD
+    User([User Intent]) --> Gemini[Gemini 3 Reasoning Layer]
+    Gemini -->|Agentic Tools| OnchainOS[OKX Onchain OS]
+    OnchainOS -->|Decoded Data| Gemini
+    Gemini -->|Optimization Panel| User
+    User -->|Execution Signature| XLayer[X Layer Mainnet]
+    
+    subgraph Sentry Firewall
+    Gemini
+    OnchainOS
+    end
+```
 
 ---
-Made with ⚡ by Nexus-Sentry Team.
+
+## 🏆 Why Nexus-Sentry Wins
+
+| Feature | Passive Dashboards (Web2.5) | Nexus-Sentry V2 (Agentic DeFi) |
+| :--- | :--- | :--- |
+| **Logic Mode** | Reactive (Shows History) | **Predictive (Simulates Future)** |
+| **Slippage** | Shows it after the trade | **Calculates alternative paths pre-trade** |
+| **User Safety** | Passive Info | **Active Execution Firewall** |
+| **Data Source** | Raw RPC (Slow) | **OKX Onchain OS Native (Instant)** |
+| **AI Role** | Customer Support Chat | **Sequential Intent Reasoning Layer** |
+
+---
+
+## 🚀 The 2026 Roadmap: Autonomous Wealth Management
+
+We are building the foundation for a fully autonomous capital layer on X Layer.
+
+- **Q4 2025: ERC-4337 Integration**: The transition from the "Dashboard" to the "Agentic Wallet," enabling gas-less batch execution for our Split-Trade strategies.
+- **Q1 2026: Autonomous Liquidity Management**: AI-managed rebalancing between AAVE, Uniswap, and X Layer native protocols based on real-time health factor telemetry.
+- **Q2 2026: Multi-Path Intent Batching**: High-concurrency intent fulfillment where the AI handles complex, multi-protocol yield loops without user intervention.
+
+---
+
+## 🛠️ Deployment & Quickstart
+
+### Backend (The Logic Engine)
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --port 8000
+```
+
+### Frontend (The Command Interface)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## 💎 Sustainability & Support
+
+Nexus-Sentry is built for the long term. We have integrated the **x402 Protocol** to enable a gas-lite support layer. If the Sentry saves you capital, you can support the project via a secure, EIP-712 signed donation permit directly settling on-chain.
+
+*Developed with 🛡️ by the Nexus-Sentry Team for the X Layer Ecosystem.*
