@@ -27,7 +27,7 @@ const ASSETS = [
   }
 ];
 
-const PROJECT_WALLET = "0xAFCc6a91705D2DCC7E5dEaE084b726437c35eF17";
+const PROJECT_WALLET = "0xdd60475c90c3371ccd1329179b5aee497d3faa5c";
 
 export function SupportProject() {
   const { address, isConnected } = useWalletStore();
