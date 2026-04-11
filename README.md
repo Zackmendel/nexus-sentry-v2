@@ -51,9 +51,10 @@ An autonomous side-panel assistant capable of:
 - **Yield Search**: Explore staking, LP, and lending protocols.
 - **Telemetry Charts**: Historical APY and TVL data visualization to identify trends before investing.
 
-### 4. **Adaptive Swap**
+### 4. **Adaptive Swap & Optimization**
 - **Liquidity Aggregation**: Integrated with OKX Aggregator for best-in-class pricing.
-- **Route Visualization**: Real-time quotes with slippage adjustment and route mapping.
+- **Sentry Optimization Engine**: A pre-trade decision engine that detects high slippage and computes alternative execution paths (Split Trades, CEX Loops) side-by-side.
+- **Route Visualization**: Real-time quotes with slippage adjustment and visual route mapping.
 
 ---
 

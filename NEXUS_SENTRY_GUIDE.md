@@ -34,10 +34,11 @@ graph TD
 - **System Pulse**: Real-time monitoring of backend API health and X Layer network status.
 - **Segmented Fetching**: Core wallet data loads instantly, while heavier historical data (PnL/Activity) hydrates in the background for a lag-free experience.
 
-### 2. Sentry AI Co-Pilot
+### 2. Sentry AI Co-Pilot & Optimization Engine
+- **Pre-Trade Decision Engine**: Nexus-Sentry doesn't just warn about slippage; it computes alternative execution paths (Split Trades, CEX Loops) and presents them side-by-side.
+- **Quantified Comparison**: Users see exactly how many extra tokens they receive by choosing an optimized strategy.
 - **Context-Aware Chat**: The AI knows your wallet address, current page, and recent market trends.
-- **Tool Calling**: The agent can actually call functions like `get_user_portfolio()` or `fetch_swap_quote()` to answer complex questions ("Is my LP position on OKX profitable right now?").
-- **Strategic Intelligence**: Automatically detects high-price impact trades and suggests alternatives like "CEX Loops" to save on slippage.
+- **Tool Calling**: The agent can call functions like `get_user_portfolio()` to answer complex questions ("Is my LP position profitable?").
 
 ### 3. Advanced Swap & Discovery
 - **Fuzzy Search**: Instantly search through 1,000+ X Layer assets.
@@ -84,9 +85,10 @@ The FastAPI backend handles the heavy lifting of signing requests and interactin
 
 1.  **Morning Check-In**: Alex opens Nexus-Sentry. The "System Pulse" glows green, indicating the Cloud Run backend is healthy. He immediately sees his **Portfolio Valuation** is up 5% due to a recent ETH move.
 2.  **AI Consultation**: Alex opens the "Nexus Command Center" (AI Sidebar) and asks: *"I have 500 USDC sitting idle. Where can I earn the best yield without high impermanent loss?"*
-3.  **Sentry Intelligence**: The AI calls `research_yield` and returns a **Strategic Intelligence Report**. It suggests a stablecoin LP pool on StarryNift, highlighting a 12% APY.
-4.  **Execution & Protection**: Alex decides to swap. Sentry prepares a quote but detects a **High Price Impact (4.2%)**. A red "Sentry Alert" appears: *"Liquidity gap detected. Proposing CEX Loop strategy or TWAP execution to save $21 in slippage."*
-5.  **Support**: Alex is impressed by the whale protection. Before closing, he expands the **Support Project** drawer and clicks "Send USDG." He signs a permit in his OKX Wallet (via x402), effortlessly supporting the project over the air.
+3.  **Optimization & Protection**: Alex decides to swap. Sentry detects a **High Price Impact (4.2%)** and instead of a simple warning, it displays the **Strategic Optimization Panel**. 
+4.  **Strategic Comparison**: Alex sees three options: **Direct ($21 Loss)**, **Split ($8 Loss)**, and **CEX Loop ($2 Loss)**.
+5.  **One-Click Execution**: Alex clicks **"Apply Split Optimization"**. The system automatically re-calibrates the trade to 1/3 of the size and begins the staggering routine. Sentry saves Alex $13 instantly.
+6.  **Support**: Alex is impressed by the whale protection. Before closing, he expands the **Support Project** drawer and clicks "Send USDG." He signs a permit in his OKX Wallet (via x402), effortlessly supporting the project over the air.
 
 ---
 
