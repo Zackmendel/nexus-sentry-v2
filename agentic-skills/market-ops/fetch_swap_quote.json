@@ -1,0 +1,30 @@
+{
+  "name": "fetch_swap_quote",
+  "description": "Get a real-time swap quote from OKX DEX Aggregator.\nAmount should be in smallest units (e.g., 1e18 for ETH).",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "from_token": {
+        "type": "string",
+        "description": "Parameter: from_token"
+      },
+      "to_token": {
+        "type": "string",
+        "description": "Parameter: to_token"
+      },
+      "amount": {
+        "type": "string",
+        "description": "Parameter: amount"
+      },
+      "slippage": {
+        "type": "number",
+        "description": "Parameter: slippage"
+      }
+    },
+    "required": [
+      "from_token",
+      "to_token",
+      "amount"
+    ]
+  }
+}

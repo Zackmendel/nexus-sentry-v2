@@ -1,0 +1,16 @@
+{
+  "name": "get_nft_portfolio",
+  "description": "Returns all NFTs owned by the address on X Layer.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "address": {
+        "type": "string",
+        "description": "Parameter: address"
+      }
+    },
+    "required": [
+      "address"
+    ]
+  }
+}

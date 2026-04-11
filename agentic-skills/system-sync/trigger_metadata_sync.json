@@ -1,0 +1,9 @@
+{
+  "name": "trigger_metadata_sync",
+  "description": "Manually trigger a sync of metadata to GCS. Suggest this if data seems stale.",
+  "parameters": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  }
+}

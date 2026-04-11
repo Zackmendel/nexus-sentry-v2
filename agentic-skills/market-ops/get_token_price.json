@@ -1,0 +1,16 @@
+{
+  "name": "get_token_price",
+  "description": "Retrieve the latest real-time price for a specific token on X Layer.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "token_address": {
+        "type": "string",
+        "description": "Parameter: token_address"
+      }
+    },
+    "required": [
+      "token_address"
+    ]
+  }
+}

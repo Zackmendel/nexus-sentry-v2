@@ -1,0 +1,16 @@
+{
+  "name": "research_yield",
+  "description": "Search for investment products (Staking, LP, etc.) on X Layer.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "Parameter: query"
+      }
+    },
+    "required": [
+      "query"
+    ]
+  }
+}

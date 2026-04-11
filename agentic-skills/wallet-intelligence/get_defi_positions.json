@@ -1,0 +1,16 @@
+{
+  "name": "get_defi_positions",
+  "description": "Retrieve staked assets and yield positions for a wallet.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "address": {
+        "type": "string",
+        "description": "Parameter: address"
+      }
+    },
+    "required": [
+      "address"
+    ]
+  }
+}

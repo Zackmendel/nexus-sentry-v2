@@ -1,0 +1,16 @@
+{
+  "name": "get_user_portfolio",
+  "description": "Get the aggregated USD value and detailed token balances of a wallet on X Layer (Chain ID 196).",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "address": {
+        "type": "string",
+        "description": "Parameter: address"
+      }
+    },
+    "required": [
+      "address"
+    ]
+  }
+}

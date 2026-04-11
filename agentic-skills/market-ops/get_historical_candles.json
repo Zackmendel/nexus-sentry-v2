@@ -1,0 +1,24 @@
+{
+  "name": "get_historical_candles",
+  "description": "Fetch OHLCV candlestick data for charting/analysis. bar: 1m, 5m, 15m, 1H, 1D.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "token_address": {
+        "type": "string",
+        "description": "Parameter: token_address"
+      },
+      "bar": {
+        "type": "string",
+        "description": "Parameter: bar"
+      },
+      "limit": {
+        "type": "integer",
+        "description": "Parameter: limit"
+      }
+    },
+    "required": [
+      "token_address"
+    ]
+  }
+}

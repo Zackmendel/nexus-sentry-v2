@@ -1,0 +1,9 @@
+{
+  "name": "get_market_analysis",
+  "description": "Fetches latest crypto fear and greed index and global market metrics (BTC Dominance, etc.).",
+  "parameters": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  }
+}
