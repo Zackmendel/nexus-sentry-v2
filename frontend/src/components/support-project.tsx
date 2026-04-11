@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useWalletStore } from "@/store/useWalletStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, Coins, ShieldCheck, Loader2, Check } from "lucide-react";
+import { Heart, Coins, ShieldCheck, Loader2, Check, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import axios from "axios";
@@ -27,11 +27,11 @@ const ASSETS = [
   }
 ];
 
-// PROD DONATION WALLET - Using user-defined placeholder or project dev wallet
 const PROJECT_WALLET = "0xAFCc6a91705D2DCC7E5dEaE084b726437c35eF17";
 
 export function SupportProject() {
   const { address, isConnected } = useWalletStore();
+  const [expanded, setExpanded] = useState(false);
   const [amount, setAmount] = useState("");
   const [selectedAsset, setSelectedAsset] = useState(ASSETS[0]);
   const [loading, setLoading] = useState(false);
@@ -52,9 +52,9 @@ export function SupportProject() {
       const rawValue = (BigInt(Math.floor(Number(amount) * 10 ** decimals))).toString();
       const nonce = "0x" + Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join('');
       const validAfter = Math.floor(Date.now() / 1000);
-      const validBefore = validAfter + 3600; // 1 hour
+      const validBefore = validAfter + 3600 * 24; // 24 hours
 
-      // X402 Structured Data for Signing (Standard EIP-712)
+      // X402 EIP-712 Data
       const domain = {
         name: "X402",
         version: "1",
@@ -81,7 +81,8 @@ export function SupportProject() {
         nonce: nonce
       };
 
-      const msgData = JSON.stringify({
+      // In OKX Wallet and MetaMask, the data should be the object, not a JSON string for v4
+      const signParams = {
         types: {
             EIP712Domain: [
                 { name: "name", type: "string" },
@@ -93,25 +94,29 @@ export function SupportProject() {
         primaryType: "X402Transfer",
         domain: domain,
         message: message
-      });
+      };
+
+      console.log("[X402] Requesting signature for:", signParams);
 
       const signature = await okxwallet.request({
         method: "eth_signTypedData_v4",
-        params: [address, msgData]
+        params: [address, JSON.stringify(signParams)] // Some wallets expect string, some object. OKX usually expects string for compatibility.
       });
 
-      // Prepare settlement request for Project Backend
+      if (!signature) throw new Error("Signature denied");
+
+      // Settlement
       const payload = {
         x402Version: 1,
         chainIndex: "196",
         paymentPayload: {
-          x402Version: "1",
+          x402Version: 1,
           scheme: "exact",
           payload: {
             signature: signature,
             authorization: {
               ...message,
-              value: rawValue.toString()
+              value: rawValue
             }
           }
         },
@@ -120,7 +125,7 @@ export function SupportProject() {
           maxAmountRequired: rawValue,
           payTo: PROJECT_WALLET,
           asset: selectedAsset.address,
-          description: "Donation to Nexus-Sentry Project Support"
+          description: "Nexus-Sentry Support Donation"
         }
       };
 
@@ -130,108 +135,100 @@ export function SupportProject() {
         setSuccess(true);
         setTimeout(() => {
           setSuccess(false);
+          setExpanded(false);
           setAmount("");
-        }, 5000);
+        }, 3000);
       } else {
-        throw new Error(res.data.msg || "Settlement failed");
+        throw new Error(res.data.msg || res.data.message || "Settlement failed");
       }
 
     } catch (e: any) {
       console.error("Donation failed", e);
-      setError(e.message || "Payment process interrupted");
+      setError(e.response?.data?.detail || e.message || "Action failed");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="flex flex-col gap-4 p-5 rounded-[2rem] bg-white/[0.03] border border-white/10 backdrop-blur-3xl overflow-hidden relative spotlight-card">
-      <div className="absolute -top-10 -right-10 h-32 w-32 bg-okx-cyan/10 blur-3xl rounded-full" />
-      
-      <div className="flex items-center gap-3 mb-2">
-        <div className="h-8 w-8 rounded-xl bg-okx-cyan/10 flex items-center justify-center border border-okx-cyan/20">
-          <Heart className="h-4 w-4 text-okx-cyan fill-okx-cyan/20" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none">Support Project</span>
-          <span className="text-sm font-black italic tracking-tighter text-white">Donate via X402</span>
-        </div>
-      </div>
+  if (!expanded) {
+    return (
+      <button 
+        onClick={() => setExpanded(true)}
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/5 text-zinc-500 hover:text-white hover:bg-white/10 transition-all group"
+      >
+        <Heart className="h-4 w-4 text-okx-cyan group-hover:fill-okx-cyan/20 transition-all" />
+        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Support Project</span>
+      </button>
+    );
+  }
 
-      <div className="flex flex-col gap-3">
-        <div className="flex gap-2">
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="flex flex-col gap-4 p-4 rounded-xl bg-zinc-900/90 border border-white/10 backdrop-blur-3xl relative"
+    >
+      <button 
+        onClick={() => setExpanded(false)}
+        className="absolute top-3 right-3 p-1 text-zinc-600 hover:text-white transition-colors"
+      >
+        <X className="h-3 w-3" />
+      </button>
+
+      <div className="flex flex-col gap-1">
+        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Support Nexus</span>
+        <div className="flex gap-1">
           {ASSETS.map((asset) => (
             <button
               key={asset.symbol}
               onClick={() => setSelectedAsset(asset)}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border text-[10px] font-black transition-all",
+                "flex-1 py-1.5 rounded-lg border text-[8px] font-black transition-all",
                 selectedAsset.symbol === asset.symbol 
                   ? "bg-white/10 border-white/20 text-white" 
-                  : "bg-transparent border-white/5 text-zinc-600 hover:border-white/10"
+                  : "bg-transparent border-white/5 text-zinc-600"
               )}
             >
-              <img src={asset.icon} className="h-3 w-3 rounded-full" alt={asset.symbol} />
               {asset.symbol}
             </button>
           ))}
         </div>
+      </div>
 
+      <div className="flex flex-col gap-2">
         <div className="relative">
           <Input
             type="number"
             placeholder="0.00"
             value={amount}
+            autoFocus
             onChange={(e) => setAmount(e.target.value)}
-            className="bg-black/40 border-white/5 rounded-2xl h-12 pl-10 text-xs font-bold focus-visible:ring-okx-cyan/50 focus-visible:border-okx-cyan/50"
+            className="bg-black/40 border-white/5 rounded-lg h-10 pl-9 text-[10px] font-bold"
           />
-          <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-600" />
+          <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-okx-cyan" />
         </div>
 
         <Button
           onClick={handleDonate}
           disabled={loading || success || !amount}
           className={cn(
-            "h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all duration-500",
-            success 
-              ? "bg-green-500 text-white" 
-              : "bg-okx-cyan text-black hover:bg-okx-cyan/90 shadow-[0_0_20px_rgba(0,255,204,0.2)]"
+            "h-10 rounded-lg font-black uppercase tracking-widest text-[9px] transition-all",
+            success ? "bg-green-500 text-white" : "bg-okx-cyan text-black"
           )}
         >
           {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-3 w-3 animate-spin" />
           ) : success ? (
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4" />
-              Support Recorded
-            </div>
+            <Check className="h-3 w-3" />
           ) : (
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4" />
-              Authorize Donation
-            </div>
+            "Authorize X402"
           )}
         </Button>
-
-        <AnimatePresence>
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="text-[8px] text-red-500 font-bold uppercase tracking-widest text-center mt-1"
-            >
-              {error}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
-      <div className="mt-2 text-center">
-        <span className="text-[8px] font-bold text-zinc-700 uppercase tracking-widest">
-          X402 Protocol Secured Settlement
-        </span>
-      </div>
-    </div>
+      {error && (
+        <span className="text-[8px] text-red-500 font-bold uppercase text-center">{error}</span>
+      )}
+    </motion.div>
   );
 }

@@ -80,10 +80,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="px-3 gap-6">
-        <div className="px-3 group-data-[collapsible=icon]:hidden">
-          <SupportProject />
-        </div>
+      <SidebarContent className="px-3 gap-1">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
@@ -133,7 +130,11 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-6 border-t border-white/5">
+      <SidebarFooter className="p-6 border-t border-white/5 gap-6">
+        <div className="group-data-[collapsible=icon]:hidden">
+          <SupportProject />
+        </div>
+
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
             <div className="relative">
