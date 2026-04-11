@@ -84,10 +84,10 @@ export default function Home() {
         >
           <div className="flex flex-col gap-2">
             <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-glow leading-[1.1]">
-              Manage your <span className="text-neon-cyan neon-glow">X Layer</span> Assets.
+              Secure Your <span className="text-neon-cyan neon-glow">X Layer</span> Execution.
             </h1>
-            <p className="text-zinc-500 text-sm max-w-lg font-medium">
-              Premium portfolio tracking for the next generation of DeFi on OKX's high-performance L2.
+            <p className="text-zinc-500 text-sm max-w-xl font-medium">
+              Institutional-grade protection and strategic intelligence layer for the next generation of DeFi on OKX's high-performance L2.
             </p>
           </div>
 

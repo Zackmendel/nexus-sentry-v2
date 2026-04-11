@@ -1,6 +1,6 @@
-# Nexus-Sentry V2: The Premier X Layer Intelligence Dashboard 🚀
+# Nexus-Sentry V2: Execution Intelligence & Protection Layer 🛡️
 
-Nexus-Sentry V2 is an institutional-grade onchain management platform designed specifically for the **X Layer (Mainnet 196)**. It combines real-time portfolio tracking, DeFi discovery, and a powerful AI Co-Pilot to provide a seamless decentralized finance experience.
+Nexus-Sentry V2 is an institutional-grade **Execution Intelligence Layer** designed specifically for the **X Layer (Mainnet 196)**. It moves beyond passive monitoring to provide active protection against liquidity inefficiencies, slippage tax, and sub-optimal trade paths.
 
 ![Nexus-Sentry Architecture](https://img.shields.io/badge/Architecture-Hybrid_Serverless-blue)
 ![Tech Stack](https://img.shields.io/badge/Stack-Next.js_|_FastAPI_|_Gemini-green)

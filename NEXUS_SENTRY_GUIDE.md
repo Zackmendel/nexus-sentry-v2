@@ -1,7 +1,6 @@
-# Nexus-Sentry: X Layer Portfolio Intelligence & AI Co-Pilot
+# Nexus-Sentry: X Layer Execution Intelligence & AI Protection Layer 🛡️
 
-## 🛡️ Project Overview
-**Nexus-Sentry** is a high-fidelity, institutional-grade DeFi dashboard and AI assistant built specifically for the **X Layer** (Chain ID 196) ecosystem. It transforms the complex data landscape of OKX's L2 into a streamlined, actionable "Pro Terminal" for traders and researchers.
+Nexus-Sentry V2 is an institutional-grade **Execution Intelligence Layer** designed specifically for the **X Layer (Mainnet 196)**. It moves beyond passive monitoring to provide active protection against liquidity inefficiencies, slippage tax, and sub-optimal trade paths.
 
 This application was developed through seven intensive iterations, evolving from a simple API script into a cloud-native, AI-augmented platform.
 
@@ -24,6 +23,14 @@ graph TD
     BackendSync[Sync Engine] --> OKX
     BackendSync --> CDNCache
 ```
+
+---
+
+## 🧠 Core Philosophy: "The Sentry Guardrail"
+Unlike traditional dashboards that are **passive**, Nexus-Sentry is an **active** layer.
+- **The Execution Firewall**: Every trade is sanitized for price impact before confirmation.
+- **Meta-Execution Pathfinding**: We look beyond a single swap, suggesting CEX loops or staggered execution (TWAP) to preserve capital.
+- **Agency-First Intelligence**: We don't just "assist"; we provide a pre-filled optimized path for the user to execute with one click.
 
 ---
 
