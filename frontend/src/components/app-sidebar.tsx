@@ -43,6 +43,8 @@ const items = [
 
 import { API_BASE } from "@/lib/constants";
 
+import { SupportProject } from "./support-project";
+
 export function AppSidebar() {
   const pathname = usePathname();
   const [isApiHealthy, setIsApiHealthy] = useState(true);
@@ -78,7 +80,10 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="px-3">
+      <SidebarContent className="px-3 gap-6">
+        <div className="px-3 group-data-[collapsible=icon]:hidden">
+          <SupportProject />
+        </div>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">

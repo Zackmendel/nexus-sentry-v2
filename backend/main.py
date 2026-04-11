@@ -315,6 +315,30 @@ class ChatRequest(BaseModel):
     chain_id: int = 196
     history: Optional[List[dict]] = []
 
+class DonationSettleRequest(BaseModel):
+    x402Version: int = 1
+    chainIndex: str = "196"
+    paymentPayload: dict
+    paymentRequirements: dict
+
+@app.post("/donate/settle")
+def donate_settle(request: DonationSettleRequest):
+    """Settle an x402 protocol payment for donations."""
+    try:
+        print(f"[Donation] Settlement request received")
+        body = {
+            "x402Version": request.x402Version,
+            "chainIndex": request.chainIndex,
+            "syncSettle": True,
+            "paymentPayload": request.paymentPayload,
+            "paymentRequirements": request.paymentRequirements
+        }
+        data = okx.request("POST", "/api/v6/x402/settle", body=body)
+        return data
+    except Exception as e:
+        print(f"DONATION ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Donation Settlement Error: {str(e)}")
+
 @app.post("/chat")
 def chat_endpoint(request: ChatRequest):
     """Chat with Nexus-Sentry AI Co-Pilot."""
