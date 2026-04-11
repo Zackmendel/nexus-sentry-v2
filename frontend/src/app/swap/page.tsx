@@ -33,10 +33,10 @@ interface Token {
 }
 
 const COMMON_TOKENS: Token[] = [
-  { s: "OKB", n: "OKB", a: "0xec729b1399718442d87e0743b4af040b208eb675", d: "18", l: "https://static.okx.com/cdn/oksupport/asset/currency/icon/okb.png" },
+  { s: "OKB", n: "X Layer (Native)", a: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", d: "18", l: "https://static.okx.com/cdn/wallet/logo/okb.png" },
   { s: "ETH", n: "Ether", a: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", d: "18", l: "https://static.okx.com/cdn/oksupport/asset/currency/icon/eth.png" },
-  { s: "USDT", n: "Tether USD", a: "0x1e4a5963a4d9a2d140342c237c16f8efc06b7ad0", d: "6", l: "https://static.okx.com/cdn/oksupport/asset/currency/icon/usdt.png" },
-  { s: "USDC", n: "USD Coin", a: "0x74b7f11373d40fd8429ec97010f3c0502a5c1e36", d: "6", l: "https://static.okx.com/cdn/oksupport/asset/currency/icon/usdc.png" },
+  { s: "USDT", n: "Tether USD", a: "0x1e4a5963abfd975d8c9021ce480b42188849d41d", d: "6", l: "https://static.okx.com/cdn/oksupport/asset/currency/icon/usdt.png" },
+  { s: "USDC", n: "USD Coin", a: "0x74b7f16337b8972027f6196a17a631ac6de26d22", d: "6", l: "https://static.okx.com/cdn/oksupport/asset/currency/icon/usdc.png" },
 ];
 
 export default function SwapPage() {
