@@ -7,10 +7,6 @@
 ![Phase](https://img.shields.io/badge/Phase-Brain_Before_Muscle-orange?style=for-the-badge)
 
 ---
-
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/XYodndZaBFE?si=UShL3N81hPTpjSMf" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
----
 ## The Problem: DeFi Users Are Flying Blind
 
 Every day, traders on X Layer lose capital to the same three silent killers:
