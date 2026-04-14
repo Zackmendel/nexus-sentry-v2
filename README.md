@@ -8,8 +8,8 @@
 
 ---
 
-![demo video](https://youtu.be/XYodndZaBFE)
-[![Demo Video](https://img.youtube.com/vi/XYodndZaBFE/0.jpg)](https://youtu.be/XYodndZaBFE)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/XYodndZaBFE?si=UShL3N81hPTpjSMf" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 ---
 ## The Problem: DeFi Users Are Flying Blind
 
