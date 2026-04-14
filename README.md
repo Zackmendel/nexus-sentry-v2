@@ -8,6 +8,9 @@
 
 ---
 
+https://youtu.be/XYodndZaBFE
+
+---
 ## The Problem: DeFi Users Are Flying Blind
 
 Every day, traders on X Layer lose capital to the same three silent killers:
