@@ -8,7 +8,7 @@
 
 ---
 
-https://youtu.be/XYodndZaBFE
+![demo video](https://youtu.be/XYodndZaBFE)
 
 ---
 ## The Problem: DeFi Users Are Flying Blind
